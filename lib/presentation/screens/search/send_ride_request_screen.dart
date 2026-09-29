@@ -133,6 +133,22 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
       isInilize = true;
       rideId = FirebaseFirestore.instance.collection('temp').doc().id;
     }
+    final ctxDiag = context;
+    showDialog(
+      context: ctxDiag,
+      builder: (_) => AlertDialog(
+        title: const Text("NEARBY_DRIVERS_CHECK"),
+        content: Text(
+            "Count: ${nearbyDrivers.length}\n\nIDs: ${nearbyDrivers.map((d) => d['id']).toList()}"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctxDiag).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  
     try {
       await context.read<RideRequestCubit>().createDriverData(
           rideId: rideId,
