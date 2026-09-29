@@ -124,30 +124,24 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
   Future<void> _initializeRideRequest(
       {required List<Map<String, dynamic>> nearbyDrivers,
       required bool checkRestart}) async {
-    final stateData = context.read<BookRideRealTimeDataBaseCubit>().state;
-    final rideRequestData = context.read<RideRequestCubit>().state;
-    if (checkRestart == true) {
-      rideId = rideRequestData.rideId;
-    } else {
-      if (isInilize) return;
-      isInilize = true;
-      rideId = FirebaseFirestore.instance.collection('temp').doc().id;
-    }
-    final ctxDiag = context;
+    // TEMPORARY DIAGNOSTIC: fires at the very start, before any guard.
     showDialog(
-      context: ctxDiag,
+      context: context,
       builder: (_) => AlertDialog(
-        title: const Text("NEARBY_DRIVERS_CHECK"),
+        title: const Text("INIT_CALLED"),
         content: Text(
-            "Count: ${nearbyDrivers.length}\n\nIDs: ${nearbyDrivers.map((d) => d['id']).toList()}"),
+            "nearbyDrivers count: ${nearbyDrivers.length}\ncheckRestart: $checkRestart\nisInilize: $isInilize"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctxDiag).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text("OK"),
           ),
         ],
       ),
     );
+    final stateData = context.read<BookRideRealTimeDataBaseCubit>().state;
+    final rideRequestData = context.read<RideRequestCubit>().state;
+    if (checkRestart == true) {
   
     try {
       await context.read<RideRequestCubit>().createDriverData(
