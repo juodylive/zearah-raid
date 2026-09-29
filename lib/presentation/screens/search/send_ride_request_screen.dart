@@ -142,7 +142,8 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
     final stateData = context.read<BookRideRealTimeDataBaseCubit>().state;
     final rideRequestData = context.read<RideRequestCubit>().state;
     if (checkRestart == true) {
-  
+    }
+  }
     try {
       await context.read<RideRequestCubit>().createDriverData(
           rideId: rideId,
