@@ -240,9 +240,13 @@ class RideRequestCubit extends Cubit<RideRequestState> {
     final currentRequestId = DateTime.now().millisecondsSinceEpoch.toString();
     activeRideRequestId = currentRequestId;
 
-
+    // ==================== FIX 1 ====================
+    // Await the realtime write so that /ride_requests/{rideId} exists in RTDB
+    // BEFORE we write ride_request into Firestore driver docs.
+    // Without this, the driver's checkAndCleanRideOnStartup sees snap.exists=false
+    // and clears the pending request immediately (race condition).
     if (checkRestart == false) {
-      createRealTimeInstance(
+      await createRealTimeInstance(
           dropoffAddress: dropoffAddress,
           dropoffLat: dropoffLat,
           dropoffLng: dropoffLng,
@@ -260,6 +264,10 @@ class RideRequestCubit extends Cubit<RideRequestState> {
           routeStatus: 'pending');
     }
 
+    // ==================== FIX 2 ====================
+    // Use Firestore Timestamps (not raw DateTime) so the driver's parser
+    // always gets a `Timestamp`, and so the request is never treated as
+    // "stale" due to timezone / format mismatches.
     final rideRequestData = {
       'pickupLocation': pickupAddress,
       'dropoffLocation': dropoffAddress,
@@ -275,7 +283,8 @@ class RideRequestCubit extends Cubit<RideRequestState> {
       'status': 'pending',
       'travelDistance': routeDistance,
       "travelTime": totalTime.toString(),
-      "requestTime": DateTime.now()
+      "requestTime": Timestamp.now(),
+      "timestamp": Timestamp.now(),
     };
     box.put("rideId", rideId);
 
@@ -285,11 +294,14 @@ class RideRequestCubit extends Cubit<RideRequestState> {
       final fireStoreToken = driver['id'] as String?;
 
       if (fireStoreToken == null || fireStoreToken.isEmpty) {
-         continue;
+        continue;
       }
 
+      // ==================== FIX 3 ====================
+      // Unify rideStatus to "busy" (was "assigned") so all parts of the app
+      // treat the driver consistently.
       final driverData = {
-        "rideStatus": "assigned",
+        "rideStatus": "busy",
         'ride_request': rideRequestData,
       };
 
@@ -298,7 +310,7 @@ class RideRequestCubit extends Cubit<RideRequestState> {
             .collection('drivers')
             .doc(fireStoreToken)
             .set(driverData, SetOptions(merge: true));
-         driverIds.add(fireStoreToken);
+        driverIds.add(fireStoreToken);
       } catch (e) {
         // TEMPORARY DIAGNOSTIC: show the Firestore write error on screen so
         // it can be captured with a screenshot. Remove this block once the
@@ -317,9 +329,9 @@ class RideRequestCubit extends Cubit<RideRequestState> {
             ],
           ),
         );
-       }
+      }
     }
-     // ignore_for_file: use_build_context_synchronously
+    // ignore_for_file: use_build_context_synchronously
 
     _listenForDriverResponses(
       currentRequestId: currentRequestId,
@@ -355,7 +367,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
   }) {
     bool hasAccepted = false;
 
-     
     try {
       emit(state.copyWith(
         rideId: rideId,
@@ -367,7 +378,7 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         if (activeRideRequestId == currentRequestId &&
             !hasAccepted &&
             !isManuallyCancelled) {
-           for (var driverFireStoreId in driverIds) {
+          for (var driverFireStoreId in driverIds) {
             try {
               await FirebaseFirestore.instance
                   .collection('drivers')
@@ -376,9 +387,8 @@ class RideRequestCubit extends Cubit<RideRequestState> {
                 'ride_request': {},
                 'rideStatus': 'available',
               });
-
             } catch (e) {
-               //
+              //
             }
           }
 
@@ -408,7 +418,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
                 rideRequest['status'].toString() == 'accepted' &&
                 !hasAccepted) {
               hasAccepted = true;
-
 
               if (driverFireStoreId.isNotEmpty) {
                 try {
@@ -455,7 +464,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
                     "",
               );
 
-
               for (var otherDriverId in driverIds) {
                 if (otherDriverId != driverFireStoreId) {
                   try {
@@ -464,16 +472,15 @@ class RideRequestCubit extends Cubit<RideRequestState> {
                         .doc(otherDriverId)
                         .update(
                             {'ride_request': {}, 'rideStatus': "available"});
-
                   } catch (e) {
-                   //
+                    //
                   }
                 }
               }
             }
           }
         }, onError: (error) {
-
+          //
         });
       }
     } catch (error) {
@@ -482,7 +489,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         isSubmitting: false,
         progressIndicator: false,
       ));
-
     }
   }
 
@@ -543,8 +549,8 @@ class RideRequestCubit extends Cubit<RideRequestState> {
           vehicleNumber = data['vehicleNumber'] ?? '';
           itemTypeName = data['itemTypeName'] ?? '';
 
-          vehicleMake = data['vehicleMake'].toString() ;
-          vehicleModel = data['vehicleModel'].toString() ;
+          vehicleMake = data['vehicleMake'].toString();
+          vehicleModel = data['vehicleModel'].toString();
           itemTypeId = data["itemTypeId"] ?? "";
 
           final geo = data['geo'] as Map<String, dynamic>?;
@@ -554,14 +560,10 @@ class RideRequestCubit extends Cubit<RideRequestState> {
             driverLat = geoPoint.latitude;
             driverLng = geoPoint.longitude;
           }
-
-
         } else {
-
           throw Exception('Driver data is null');
         }
       } else {
-
         throw Exception('Driver document not found');
       }
 
@@ -587,7 +589,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
       };
 
       await rideRequestRef.child(rideId).update(rideData);
-
 
       emit(state.copyWith(
         pickupAddress: "$pickupAddress",
@@ -629,7 +630,6 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         "itemTypeId": itemTypeId
       });
     } catch (e) {
-
       emit(state.copyWith(
         rideId: rideId,
         isSubmitting: false,
