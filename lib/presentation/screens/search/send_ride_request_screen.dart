@@ -116,7 +116,7 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
         pickupLng: double.parse(stateData.pickupAddressLongitude),
         vehicleTypeId: widget.selectedVehicleData["id"].toString(),
         distance: double.parse(
-            context.read<LocationAccuracyThresholdCubit>().state.value ?? "3"));
+            context.read<LocationAccuracyThresholdCubit>().state.value ?? "15"));
   }
 
   bool isInilize = false;
