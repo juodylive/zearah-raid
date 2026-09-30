@@ -35,8 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isChecked = false;
 
   final _formKey = GlobalKey<FormState>();
-  String selectedCountryCode = "+91";
-  String defaultCountry = "IN";
+  String selectedCountryCode = "+962";
+  String defaultCountry = "JO";
 
   @override
   void initState() {
