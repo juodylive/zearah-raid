@@ -512,7 +512,21 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
                           .resetNearByDriverState();
                     }
 
-                    if (state is DriverError) {}
+                    if (state is DriverError) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("DRIVER_ERROR"),
+                          content: SingleChildScrollView(child: Text(state.error)),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("OK"),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   }),
                 ],
                 child: BlocBuilder<RideRequestCubit, RideRequestState>(
