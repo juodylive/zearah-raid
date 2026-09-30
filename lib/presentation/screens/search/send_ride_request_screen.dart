@@ -480,6 +480,20 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
                   BlocListener<DriverNearByCubit, DriverNearByState>(
                       listener: (context, state) {
                     if (state is DriverUpdated) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("DRIVER_UPDATED_STATE"),
+                          content: Text(
+                              "count: ${state.nearbyDrivers?.length}\nvehicleTypeId used: ${widget.selectedVehicleData["id"]}"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("OK"),
+                            ),
+                          ],
+                        ),
+                      );
                       if (state.nearbyDrivers!.isEmpty) {
                         context
                             .read<DriverNearByCubit>()
