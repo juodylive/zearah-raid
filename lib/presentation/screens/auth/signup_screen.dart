@@ -41,8 +41,8 @@ class _SignUpState extends State<SignUp> {
       TextEditingController();
 
   bool isChecked = false;
-  String selectedCountryCode = "+91";
-  String defaultCountry = "IN";
+  String selectedCountryCode = "+962";
+  String defaultCountry = "JO";
 
   final _formKey = GlobalKey<FormState>();
 
