@@ -44,7 +44,7 @@ void main() async {
           return BlocBuilder<LanguageCubit, LanguageState>(
               builder: (context, state) {
             if (state is LanguageLoader) {
-              appLocale = Locale(state.language ?? "en");
+              appLocale = Locale(state.language ?? "ar");
             }
             return MaterialApp(
               navigatorKey: navigatorKey,
@@ -53,8 +53,8 @@ void main() async {
                 fontFamily: 'Gilroy Regular',
               ),
               supportedLocales: const [
-                Locale('en', 'US'),
                 Locale('ar', 'AR'),
+                Locale('en', 'US'),
 
               ],
               locale: appLocale,
