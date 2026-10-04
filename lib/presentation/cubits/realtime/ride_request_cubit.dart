@@ -418,7 +418,7 @@ class RideRequestCubit extends Cubit<RideRequestState> {
                 dropoffLng: dropoffLng,
                 driverIds: driverIds,
                 context: context,
-                driverId: driverData["driverId"],
+                driverId: (driverData["driverId"] ?? '').toString(),
                 rideId: rideId,
                 nearbyDrivers: nearbyDrivers,
                 userId: rideRequestData['userId'] ?? '',
@@ -513,7 +513,8 @@ class RideRequestCubit extends Cubit<RideRequestState> {
       final snapshot = await FirebaseFirestore.instance
           .collection('drivers')
           .doc(fireStoreToken)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 10));
 
       if (snapshot.exists) {
         final data = snapshot.data();
@@ -529,14 +530,17 @@ class RideRequestCubit extends Cubit<RideRequestState> {
 
           vehicleMake = data['vehicleMake'].toString() ;
           vehicleModel = data['vehicleModel'].toString() ;
-          itemTypeId = data["itemTypeId"] ?? "";
+          itemTypeId = (data["itemTypeId"] ?? "").toString();
 
-          final geo = data['geo'] as Map<String, dynamic>?;
-          final GeoPoint? geoPoint = geo?['geopoint'];
-
-          if (geoPoint != null) {
-            driverLat = geoPoint.latitude;
-            driverLng = geoPoint.longitude;
+          final geo = data['geo'];
+          final rawPoint = geo is Map ? geo['geopoint'] : null;
+          if (rawPoint is GeoPoint) {
+            driverLat = rawPoint.latitude;
+            driverLng = rawPoint.longitude;
+          } else if (rawPoint is List && rawPoint.length >= 2) {
+            // backend (Laravel) stores geopoint as [lat, lng]
+            driverLat = double.tryParse(rawPoint[0].toString()) ?? 0.0;
+            driverLng = double.tryParse(rawPoint[1].toString()) ?? 0.0;
           }
 
 
@@ -570,7 +574,10 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         'timestamp': DateTime.now().toIso8601String(),
       };
 
-      await rideRequestRef.child(rideId).update(rideData);
+      await rideRequestRef
+          .child(rideId)
+          .update(rideData)
+          .timeout(const Duration(seconds: 10));
 
 
       emit(state.copyWith(
@@ -613,7 +620,7 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         "itemTypeId": itemTypeId
       });
     } catch (e) {
-
+      debugPrint("ACCEPTED_RIDE_RTDB_ERROR: $e");
       emit(state.copyWith(
         rideId: rideId,
         isSubmitting: false,
@@ -701,9 +708,12 @@ class RideRequestCubit extends Cubit<RideRequestState> {
         'timestamp': DateTime.now().toIso8601String(),
       };
 
-      await rideRequestRef.child(rideId).set(rideData);
+      await rideRequestRef
+          .child(rideId)
+          .set(rideData)
+          .timeout(const Duration(seconds: 10));
     } catch (e) {
-      //
+      debugPrint("CREATE_RTDB_RIDE_ERROR: $e");
     }
   }
 
