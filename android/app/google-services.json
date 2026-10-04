@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "383812583887",
+    "firebase_url": "https://taxi-32f59-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "taxi-32f59",
     "storage_bucket": "taxi-32f59.firebasestorage.app"
   },
