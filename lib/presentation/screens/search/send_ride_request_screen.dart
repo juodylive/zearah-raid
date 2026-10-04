@@ -124,26 +124,15 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
   Future<void> _initializeRideRequest(
       {required List<Map<String, dynamic>> nearbyDrivers,
       required bool checkRestart}) async {
-    // TEMPORARY DIAGNOSTIC: fires at the very start, before any guard.
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("INIT_CALLED"),
-        content: Text(
-            "nearbyDrivers count: ${nearbyDrivers.length}\ncheckRestart: $checkRestart\nisInilize: $isInilize"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
     final stateData = context.read<BookRideRealTimeDataBaseCubit>().state;
     final rideRequestData = context.read<RideRequestCubit>().state;
     if (checkRestart == true) {
+      rideId = rideRequestData.rideId;
+    } else {
+      if (isInilize) return;
+      isInilize = true;
+      rideId = FirebaseFirestore.instance.collection('temp').doc().id;
     }
-  
     try {
       await context.read<RideRequestCubit>().createDriverData(
           rideId: rideId,
@@ -480,20 +469,6 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
                   BlocListener<DriverNearByCubit, DriverNearByState>(
                       listener: (context, state) {
                     if (state is DriverUpdated) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("DRIVER_UPDATED_STATE"),
-                          content: Text(
-                              "count: ${state.nearbyDrivers?.length}\nvehicleTypeId used: ${widget.selectedVehicleData["id"]}"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("OK"),
-                            ),
-                          ],
-                        ),
-                      );
                       if (state.nearbyDrivers!.isEmpty) {
                         context
                             .read<DriverNearByCubit>()
@@ -513,19 +488,7 @@ class _SendRideRequestScreenState extends State<SendRideRequestScreen> {
                     }
 
                     if (state is DriverError) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("DRIVER_ERROR"),
-                          content: SingleChildScrollView(child: Text(state.error)),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("OK"),
-                            ),
-                          ],
-                        ),
-                      );
+                      debugPrint("DriverError: ${state.error}");
                     }
                   }),
                 ],
