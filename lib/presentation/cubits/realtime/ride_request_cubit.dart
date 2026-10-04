@@ -300,23 +300,7 @@ class RideRequestCubit extends Cubit<RideRequestState> {
             .set(driverData, SetOptions(merge: true));
          driverIds.add(fireStoreToken);
       } catch (e) {
-        // TEMPORARY DIAGNOSTIC: show the Firestore write error on screen so
-        // it can be captured with a screenshot. Remove this block once the
-        // root cause is fixed.
-        final ctx = context;
-        showDialog(
-          context: ctx,
-          builder: (_) => AlertDialog(
-            title: const Text("RIDE_REQUEST_WRITE_ERROR"),
-            content: SingleChildScrollView(child: Text("$e")),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        debugPrint("RIDE_REQUEST_WRITE_ERROR: $e");
        }
     }
      // ignore_for_file: use_build_context_synchronously
