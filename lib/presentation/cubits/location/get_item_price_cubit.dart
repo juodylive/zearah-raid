@@ -172,12 +172,17 @@ class GetDistanceRouteCubit extends Cubit<GetDistanceRouteState> {
           );
         }
 
+        // Fare = distance x price per km, rounded to 2 decimals, never below
+        // the vehicle's minimum fare. The server uses the same formula.
         final farePerKm = double.tryParse(category.farePerKm.toString()) ?? 0.0;
-        final fare = (distanceInKm * farePerKm).ceil();
+        final minFare = double.tryParse(category.minFare.toString()) ?? 0.0;
+        final calcFare =
+            double.parse((distanceInKm * farePerKm).toStringAsFixed(2));
+        final fare = calcFare < minFare ? minFare : calcFare;
 
         vehicleFares.add({
           "vehicleName": category.name,
-          "fare": fare.toString(),
+          "fare": fare.toStringAsFixed(2),
           "distance": distanceInKm.toStringAsFixed(2),
           "duration": duration,
           "image": category.image,
