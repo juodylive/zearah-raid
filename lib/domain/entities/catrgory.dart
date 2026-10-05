@@ -54,6 +54,7 @@ class ItemTypes {
   String? status;
   dynamic image;
   String? farePerKm;
+  String? minFare;
   String? mode;
 
   ItemTypes(
@@ -61,6 +62,7 @@ class ItemTypes {
       this.name,
       this.description,
       this.farePerKm,
+      this.minFare,
       this.mode,
       this.status,
       this.image});
@@ -71,7 +73,8 @@ class ItemTypes {
     description = json['description'];
     status = json['status'];
     image = json['image'];
-    farePerKm = json['fare_per_km'];
+    farePerKm = json['fare_per_km']?.toString();
+    minFare = json['min_fare']?.toString();
     mode = json['mode'];
   }
 
@@ -83,6 +86,7 @@ class ItemTypes {
     data['status'] = status;
     data['image'] = image;
     data['fare_per_km'] = farePerKm;
+    data['min_fare'] = minFare;
     data['mode'] = mode;
     return data;
   }
