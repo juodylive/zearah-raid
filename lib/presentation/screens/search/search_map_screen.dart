@@ -230,7 +230,7 @@ class _SearchMapScreenState extends State<SearchMapScreen> {
                 children: [
                   TileLayer(
                     urlTemplate:
-                        "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=7fd22148-c7d7-4f1f-b33f-677c8dbc8496",
+                        "https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png?api_key=7fd22148-c7d7-4f1f-b33f-677c8dbc8496",
                     userAgentPackageName: 'com.zearah.rider',
                   ),
                 ],
